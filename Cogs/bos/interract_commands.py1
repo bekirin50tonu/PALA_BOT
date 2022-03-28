@@ -1,0 +1,34 @@
+import discord
+from discord.ext import commands
+
+
+# class InterractCommand(commands.Cog, name="SelectedDenemeler"):
+#     """
+#     **Deneme Komutlarım
+#     """
+#
+#     def __init__(self, bot):
+#         self.bot = bot
+#
+#     @slash_command
+#     async def _help(self, ctx: SlashContext):
+#         select = create_select(
+#             options=[
+#                 create_select_option("Admin", value="admin", emoji="🥼"),
+#                 create_select_option("Music", value="music", emoji="🧪"),
+#                 create_select_option("Funny", value="funny", emoji="🧫")
+#             ],
+#             placeholder="Kategori Seç",
+#             disabled=False
+#         )
+#         action_row = create_actionrow(select)
+#
+#         message = await ctx.reply("Yardım İçin Kategori Seç.", components=[action_row])
+#
+#         select_ctx: ComponentContext = await wait_for_component(self.bot, components=action_row, timeout=300)
+#         embed = discord.Embed(title=f"{''.join(x for x in select_ctx.selected_options)}", description="**DENEME**")
+#         await select_ctx.edit_origin(embed=embed)
+#
+#
+# def setup(bot):
+#     bot.add_cog(InterractCommand(bot))

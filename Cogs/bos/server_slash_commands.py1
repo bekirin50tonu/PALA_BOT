@@ -1,0 +1,29 @@
+import discord
+from discord.ext import commands
+
+
+from Core.utils.server_embeds import ServerEmbed
+
+
+# class SlashCog(commands.Cog):
+#
+#     def __init__(self, bot):
+#         self.bot: commands.Bot = bot
+#
+#     @cog_ext.cog_slash(name='info')
+#     async def info(self, ctx: SlashContext, member: discord.Member = None):
+#         if not member:
+#             member: discord.Member = ctx.author
+#         await ctx.send(embed=ServerEmbed.server_member_detail(self.bot, member))
+#
+#     @cog_ext.cog_context_menu(target=ContextMenuType.MESSAGE,
+#                               name="deneme")
+#     async def _deneme(self, ctx: MenuContext):
+#         await ctx.send(
+#             content=f"Responded! The content of the message targeted: {ctx.target_message.content}",
+#             hidden=True
+#         )
+#
+#
+# def setup(bot: commands.Bot):
+#     bot.add_cog(SlashCog(bot))

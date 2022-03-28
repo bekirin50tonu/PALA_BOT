@@ -1,0 +1,43 @@
+from discord.ext import commands
+
+
+class AuthorCommands(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    ''' @commands.command(name = "commandName",
+                    usage="<usage>",
+                    description = "description",pass_context=True)
+    @commands.cooldown(1, 2, commands.BucketType.member)
+    async def commandName(self, ctx:commands.Context):
+        await ctx.send("template command") '''
+
+    @commands.command(pass_context=True)
+    async def addServer(self, ctx):
+        guild = ctx.guild
+        await ctx.send(f"Id: {guild.id}, Name: {guild.name} has Added to Bot Database")
+
+    @commands.command(pass_context=True)
+    async def removeServer(self, ctx, serverId: int = None):
+        serverid = serverId
+        if serverid is None:
+            serverid = ctx.guild.id
+        print(serverid)
+        await ctx.send(f"ID: {server.id}, Name: {server.server_name} server has Removed! from Bot Database!")
+
+    @commands.command(pass_context=True)
+    async def listServers(self, ctx):
+        print(type(ctx))
+        for guild in database.selectAll():
+            await ctx.send(guild)
+
+    @commands.command(pass_context=True)
+    async def listele(self, ctx):
+        model = database.where(serverid=ctx.guild.id)
+        for x in model.dynamic_voice_channel:
+            data: DynamicVoiceChannelModel = x
+            await ctx.send(data.voice_channel_id)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(AuthorCommands(bot))

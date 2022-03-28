@@ -1,0 +1,139 @@
+from queue import Queue
+
+import discord
+from discord.ext import commands
+
+from utilities.BotVoice import YTDLSource
+
+
+class Music(commands.Cog):
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.queue = Queue()
+        self.current_player = None
+        self.before_player = None
+
+    # def check_queue(self, server_id):
+    #     if not self.queues[server_id]:
+    #         player = self.players[server_id]  # gets current player
+    #         player = self.queues[server_id].pop(0)  # removes current player
+    #         self.players[server_id] = player  # updates player object so that you can pause
+
+    # @commands.command()
+    # async def play(self, ctx: commands.Context, *, url):
+    #     voice_client = ctx.voice_client
+    #     if not ctx.author.voice.channel:
+    #         await ctx.send("Kanala Girmelisin.")
+    #         return
+    #     if not ctx.voice_client:
+    #         voice_client = await ctx.author.voice.channel.connect()
+    #     try:
+    #         async with ctx.typing():
+    #             player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+    #
+    #             if len(self.queues) == 0 and not voice_client.is_playing():
+    #
+    #                 voice_client.play(self.queues[ctx.guild.id][0], after=lambda e: self.check_queue(ctx.guild.id))
+    #                 await ctx.send(
+    #                     f':mag_right: **Aranıyorr** ``' + url + '``\n<:musical_note:763374159567781890> **Çalan Müzik:** ``{}'.format(
+    #                         player.title) + "``")
+    #
+    #             else:
+    #
+    #                 if self.queues[ctx.guild.id]:
+    #                     self.queues[ctx.guild.id].append(player)  # add the song to the end of the queue
+    #                 else:
+    #                     self.queues[ctx.guild.id] = [player]
+    #                     self.players[ctx.guild.id] = player
+    #                 await ctx.send(
+    #                     f':mag_right: **Aranıyorr** ``' + url + '``\n<:musical_note:763374159567781890> **Sıraya Eklendi:** ``{}'.format(
+    #                         player.title) + "``")
+    #     except Exception as e:
+    #         await ctx.send(f"HATA: {e.args}")
+
+    @commands.command()
+    async def play(self, ctx: commands.Context, *, url):
+
+        try:
+            voice_client: discord.VoiceClient = ctx.voice_client
+            async with ctx.typing():
+                player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
+                self.queue.put(player)
+                if not voice_client.is_playing():
+                    await self.start_playing(ctx.voice_client)
+                    return await ctx.send(
+                        f':mag_right: **Aranıyor..:** ``' + url + '``\n:musical_note: **Çalıyor..:** ``{}'.format(
+                            player.title) + "``")
+                return await ctx.send(
+                    f':mag_right: **Aranıyor..:** ``' + url + '``\n:musical_note: **Sıraya Eklendi..:** ``{}'.format(
+                        player.title) + "``")
+
+        except Exception as e:
+
+            await ctx.send(e)
+
+    async def start_playing(self, voice_client):
+
+        if self.queue.empty():
+            return False
+        try:
+            self.current_player = self.queue.get()
+            voice_client.play(self.current_player, after=lambda e: print('Player error: %s' % e) if e else None)
+            self.before_player = self.current_player
+            return True
+        except Exception as e:
+            print(e)
+            return False
+
+    @commands.command()
+    async def queue(self, ctx: commands.Context):
+        await ctx.send("\n".join(f"{x}- {y}" for x, y in self.queue.queue.items))
+
+    @commands.command(name="Müzik Atla", aliases=['atla', 'next', 'skip'])
+    async def skip(self, ctx: commands.Context):
+        if not ctx.voice_client.is_playing():
+            return await ctx.send("Müzik Yok La")
+        ctx.voice_client.stop()
+        status = await self.start_playing(ctx.voice_client)
+        return await ctx.send(
+            f':mag_right: **Geçilen..:** `` {self.before_player.title} ``\n:musical_note: **Çalıyor..:** ``{self.current_player.title}') if status else await ctx.send(f"HATA")
+
+    @commands.command()
+    async def volume(self, ctx, volume: int):
+        """Changes the player's volume"""
+        if volume > 150:
+            return await ctx.send("Amınakoyim sağır mı edicen bizi amcık?")
+
+        if ctx.voice_client is None:
+            return await ctx.send("Kalanda Değilim Babayiğit.")
+
+        ctx.voice_client.source.volume = volume / 100
+        await ctx.send(f"Ses Şiddeti Değişti {volume}%")
+
+    @commands.command()
+    async def stop(self, ctx: commands.Context):
+        await ctx.voice_client.disconnect()
+
+    @commands.command()
+    async def resume(self, ctx: commands.Context):
+        voice: discord.VoiceClient = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+        voice.resume()
+
+    @commands.command()
+    async def pause(self, ctx: commands.Context):
+        voice: discord.VoiceClient = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
+        voice.pause()
+
+    @play.before_invoke
+    async def ensure_voice(self, ctx):
+        if ctx.voice_client is None:
+            if ctx.author.voice:
+                await ctx.author.voice.channel.connect()
+            else:
+                await ctx.send("Ses Kanalında Değilsin.")
+                raise commands.CommandError("Author not connected to a voice channel.")
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Music(bot))

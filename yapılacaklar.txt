@@ -1,0 +1,5 @@
+-queue için Shuffle kodu ekle +
+-queue için loop kodu ekle ama parametre queue alırsa -
+sadece queue için olsun yani silmesin  
+-7/24 olayı düzenle -
+

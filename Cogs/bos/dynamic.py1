@@ -1,0 +1,40 @@
+from Configs.extensions import Extensions
+import discord
+from discord.ext import commands
+from bot import database
+
+
+class DynamicAttributes(commands.Cog):
+    def __init__(self, bot:commands.Bot):
+        self.bot = bot
+        self.extensions=Extensions.getInstance()
+
+
+    @commands.command()
+    async def addVoiceChannel(self,ctx:commands.context.Context,channelName:str,categoryName:str=None,*voiceName):
+        """<prefix> addVoiceChannel "Channel Name" "Category Name" "Dynamic Channel Name" """
+        voiceChannelName = "".join(voiceName)
+        guild=ctx.guild
+        channel = discord.utils.get(guild.channels, name=channelName)
+        __get_category=discord.utils.get(guild.categories,name=categoryName)
+        category=__get_category if __get_category is not None else await guild.create_category_channel(name=categoryName)
+        await ctx.send("Eklendi") if database.insertVoice(guild.id,channel.id,channel.name,category.id,category.name,voiceChannelName) else await ctx.send("Eklenemedi")
+
+    @commands.command()
+    async def removeVoiceChannel(self,ctx:commands.context.Context,id:int):
+        """<prefix> removeVoiceChannel id """
+        await ctx.send(f"Silindi {id}") if database.deleteVoice(id) else await ctx.send("Silinemedi {id}")
+    
+    @commands.command()
+    async def listVoiceChannel(self,ctx:commands.context.Context):
+        """<prefix> listVoiceChannel"""
+        guild=ctx.guild
+        dynamicVoice=database.where(serverid=guild.id)
+        embed=self.extensions.embed_VoiceInfo(dynamicVoice,guild)
+        await ctx.send(embed=embed)
+
+
+
+
+def setup(bot:commands.Bot):
+    bot.add_cog(DynamicAttributes(bot))
